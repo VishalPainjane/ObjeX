@@ -1,88 +1,28 @@
 (function () {
   "use strict";
 
-  const scenarios = [
-    {
-      title: "Side project file uploads",
-      subtitle: "CS student or indie developer",
-      heading: "Your web app needs S3, but not an AWS bill on every test run",
-      context:
-        "Profile photos and attachments for a capstone or side project. Production uses S3 — local dev should use the same SDK calls without changing code.",
-      steps: [
-        "Run ObjeX with Docker Compose on port 9000.",
-        "Point your S3 client at http://localhost:9000.",
-        "Ship the same PutObject code to production — only the endpoint changes.",
-        "Commit docker-compose.yml so teammates reproduce in one command.",
-      ],
-      command: "docker compose up -d --build",
-    },
-    {
-      title: "S3 tests in CI",
-      subtitle: "Product engineer",
-      heading: "Integration tests should not hit AWS on every PR",
-      context:
-        "Your upload service uses boto3 or the AWS SDK. GitHub Actions needs a real S3 endpoint without cloud credentials or egress charges.",
-      steps: [
-        "Start ObjeX as a CI service container.",
-        "Seed a test bucket in your setup script.",
-        "Run existing SDK tests against the local endpoint.",
-        "Container tears down — no remote bucket cleanup.",
-      ],
-      command: "docker compose up -d\naws --endpoint-url http://localhost:9000 s3 mb s3://fixtures",
-    },
-    {
-      title: "Three VPS nodes",
-      subtitle: "Small team self-hosting",
-      heading: "Redundancy on cheap servers without managed object storage",
-      context:
-        "Three $5/month VPS instances. Data should survive one machine failing. You need quorum writes and hints when a replica is offline.",
-      steps: [
-        "Deploy ObjeX on each VPS with shared cluster JSON.",
-        "Set N=3, W=2, R=2.",
-        "Upload through any node — placement picks the primary.",
-        "Stop one node and watch hints queue in /metrics.",
-      ],
-      command: "docker compose -f docker-compose.cluster.yml up -d --build",
-    },
-    {
-      title: "Learning distributed storage",
-      subtitle: "Systems engineer",
-      heading: "Read and run real placement, quorum, and repair code",
-      context:
-        "ObjeX is a traceable Go codebase: rendezvous hashing, primary forwarding, versioned tombstones, durable hints, and fault-injection tests.",
-      steps: [
-        "Trace PUT in single-node mode through API to SQLite + filesystem.",
-        "Enable cluster mode and follow forwarding in internal/api.",
-        "Read internal/replication/coordinator.go for quorum logic.",
-        "Run go test ./internal/api/... -run Quorum -v.",
-      ],
-      command: "go test ./internal/replication/... -v",
-    },
+  const TERMINAL_LINES = [
+    { cmd: "docker compose up -d", out: "ObjeX ready at localhost:9000" },
+    { cmd: "aws s3 cp photo.jpg s3://uploads/", out: "upload complete" },
   ];
 
-  const flows = {
+  const pipelines = {
     single: [
-      { nodes: ["client"], caption: "<strong>Step 1.</strong> Client sends PUT with AWS SigV4 Authorization header." },
-      { nodes: ["client", "api"], caption: "<strong>Step 2.</strong> HTTP API validates signature and routes to the object handler." },
-      { nodes: ["api", "service"], caption: "<strong>Step 3.</strong> Object service streams body through MD5 hasher into a temp file." },
-      { nodes: ["service", "blob"], caption: "<strong>Step 4.</strong> Blob renames into SHA-256 content-addressed path on disk." },
-      { nodes: ["service", "sqlite"], caption: "<strong>Step 5.</strong> Metadata commits in SQLite. On failure, blob is removed." },
-      { nodes: ["client", "api"], caption: "<strong>Step 6.</strong> Client receives 200 and ETag — same contract as AWS S3." },
+      { title: "Your app sends the file", desc: "The AWS SDK or aws-cli sends a PUT request with a signed authorization header — the same way it talks to real S3." },
+      { title: "Request is authenticated", desc: "ObjeX verifies the AWS Signature V4 credentials. Invalid or missing signatures are rejected." },
+      { title: "HTTP handler receives it", desc: "The API routes the request to the object upload handler based on bucket and file path." },
+      { title: "File is written to disk", desc: "Bytes stream into a temporary file. A checksum is computed. The file is renamed into its final location atomically." },
+      { title: "Metadata is saved", desc: "SQLite records the file name, size, and checksum. If metadata fails, the file on disk is cleaned up." },
+      { title: "Your app gets a response", desc: "HTTP 200 with an ETag header. Your code continues exactly as it would against AWS S3." },
     ],
     cluster: [
-      { nodes: ["client", "node2"], caption: "<strong>Step 1.</strong> PUT hits node-2. Rendezvous hashing selects node-1 as primary." },
-      { nodes: ["node2", "node1"], caption: "<strong>Step 2.</strong> Node-2 forwards to primary via internal cluster proxy." },
-      { nodes: ["node1", "blob"], caption: "<strong>Step 3.</strong> Primary assigns version, writes locally — first quorum ACK." },
-      { nodes: ["node1", "node3"], caption: "<strong>Step 4.</strong> Primary streams replicate-put to other nodes in parallel." },
-      { nodes: ["node1", "node2", "node3"], caption: "<strong>Step 5.</strong> W ACKs reached — success. Failed replicas get durable hints." },
-      { nodes: ["client", "node1"], caption: "<strong>Step 6.</strong> Client gets success. GET may trigger read repair on stale replicas." },
+      { title: "Request hits any server", desc: "You can upload through Server 1, 2, or 3. ObjeX figures out which one should lead for this specific file." },
+      { title: "Forwarded to the leader", desc: "If the request landed on a non-leader server, it is forwarded internally to the correct one." },
+      { title: "Leader saves the file", desc: "The leader writes the file locally and counts that as the first successful copy." },
+      { title: "Copies sent to other servers", desc: "The leader streams the file to the remaining servers in parallel. Each verifies the checksum." },
+      { title: "Enough copies confirmed", desc: "Once the required number of servers acknowledge (default: 2 out of 3), the upload succeeds. Offline servers get a queued retry." },
+      { title: "Your app gets a response", desc: "Same HTTP 200 as single-server mode. Behind the scenes, your file now exists on multiple machines." },
     ],
-  };
-
-  const flowLabels = {
-    client: "Client", api: "HTTP API", service: "Object svc",
-    blob: "Filesystem", sqlite: "SQLite",
-    node1: "Node 1", node2: "Node 2", node3: "Node 3",
   };
 
   let flowMode = "single";
@@ -105,141 +45,161 @@
     return best;
   }
 
-  function initAOS() {
-    if (typeof AOS !== "undefined") {
-      AOS.init({ duration: 600, easing: "ease-out-cubic", once: true, offset: 40 });
-    }
+  function serverLabel(nodeId) {
+    return "Server " + nodeId.replace("node-", "");
   }
 
+  /* ----- Nav (throttled scroll) ----- */
   function initNav() {
     const nav = document.getElementById("site-nav");
     const toggle = document.getElementById("nav-toggle");
     const links = document.getElementById("nav-links");
+    let ticking = false;
 
     window.addEventListener("scroll", () => {
-      if (nav) nav.classList.toggle("scrolled", window.scrollY > 8);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          nav?.classList.toggle("scrolled", window.scrollY > 12);
+          ticking = false;
+        });
+        ticking = true;
+      }
     }, { passive: true });
 
-    if (toggle && links) {
-      toggle.addEventListener("click", () => links.classList.toggle("open"));
-      links.querySelectorAll("a").forEach((a) => {
-        a.addEventListener("click", () => links.classList.remove("open"));
-      });
+    toggle?.addEventListener("click", () => links?.classList.toggle("open"));
+    links?.querySelectorAll("a").forEach((a) => {
+      a.addEventListener("click", () => links.classList.remove("open"));
+    });
+  }
+
+  /* ----- Terminal typewriter ----- */
+  function initTerminal() {
+    const cmdEl = document.getElementById("term-cmd");
+    const outEl = document.getElementById("term-out");
+    const outText = document.getElementById("term-out-text");
+    if (!cmdEl) return;
+
+    let lineIdx = 0;
+    let charIdx = 0;
+    let phase = "typing";
+
+    function tick() {
+      const line = TERMINAL_LINES[lineIdx];
+      if (phase === "typing") {
+        cmdEl.textContent = line.cmd.slice(0, charIdx + 1);
+        charIdx++;
+        if (charIdx >= line.cmd.length) {
+          phase = "pause";
+          setTimeout(() => {
+            outText.textContent = line.out;
+            outEl.style.display = "block";
+            phase = "hold";
+            setTimeout(() => {
+              outEl.style.display = "none";
+              cmdEl.textContent = "";
+              charIdx = 0;
+              lineIdx = (lineIdx + 1) % TERMINAL_LINES.length;
+              phase = "typing";
+            }, 2200);
+          }, 400);
+        }
+      }
+      if (phase === "typing" || phase === "hold") {
+        setTimeout(tick, phase === "typing" ? 45 : 80);
+      } else if (phase === "pause") {
+        setTimeout(tick, 80);
+      }
     }
+    tick();
   }
 
-  function initScenarios() {
-    const list = document.getElementById("scenario-list");
-    const detail = document.getElementById("scenario-detail");
-    if (!list || !detail) return;
+  /* ----- Pipeline ----- */
+  function buildPipeline() {
+    const track = document.getElementById("pipeline-track");
+    if (!track) return;
+    const steps = pipelines[flowMode];
+    track.innerHTML = steps.map((s, i) =>
+      '<div class="pipeline-step" data-step="' + i + '">' +
+      '<div class="step-num">' + (i + 1) + '</div>' +
+      '<div class="step-info"><h4>' + s.title + '</h4><p>Step ' + (i + 1) + ' of ' + steps.length + '</p></div>' +
+      '</div>'
+    ).join("");
+    renderPipeline();
+  }
 
-    scenarios.forEach((s, i) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "scenario-item" + (i === 0 ? " active" : "");
-      btn.innerHTML = "<strong>" + s.title + "</strong><span>" + s.subtitle + "</span>";
-      btn.addEventListener("click", () => selectScenario(i));
-      list.appendChild(btn);
+  function renderPipeline() {
+    const steps = pipelines[flowMode];
+    const track = document.getElementById("pipeline-track");
+    const detail = document.getElementById("pipeline-detail");
+    const indicator = document.getElementById("flow-step-indicator");
+    if (!track || !detail) return;
+
+    track.querySelectorAll(".pipeline-step").forEach((el, i) => {
+      el.classList.toggle("active", i === flowStep);
+      el.classList.toggle("done", i < flowStep);
     });
-    renderScenario(0);
+
+    const stepH = 72;
+    const viewportH = track.parentElement?.clientHeight || 420;
+    const offset = flowStep * stepH - viewportH / 2 + stepH / 2 + 24;
+    track.style.transform = "translateY(" + (-Math.max(0, offset)) + "px)";
+
+    const s = steps[flowStep];
+    detail.innerHTML =
+      '<div class="step-tag">Step ' + (flowStep + 1) + ' of ' + steps.length + '</div>' +
+      '<h3>' + s.title + '</h3>' +
+      '<p>' + s.desc + '</p>';
+
+    if (indicator) indicator.textContent = "Step " + (flowStep + 1) + " / " + steps.length;
   }
 
-  function selectScenario(i) {
-    document.querySelectorAll(".scenario-item").forEach((el, j) => {
-      el.classList.toggle("active", j === i);
-    });
-    renderScenario(i);
-  }
-
-  function renderScenario(i) {
-    const s = scenarios[i];
-    const detail = document.getElementById("scenario-detail");
-    if (!detail) return;
-    detail.style.opacity = "0";
-    setTimeout(() => {
-      detail.innerHTML =
-        "<h3>" + s.heading + "</h3>" +
-        "<p class=\"context\">" + s.context + "</p>" +
-        "<ol class=\"scenario-steps\">" + s.steps.map((st) => "<li>" + st + "</li>").join("") + "</ol>" +
-        "<div class=\"scenario-command\">" + s.command + "</div>";
-      detail.style.opacity = "1";
-      detail.style.transition = "opacity 0.3s ease";
-    }, 150);
-  }
-
-  function initFlow() {
-    document.querySelectorAll(".flow-toggle button").forEach((btn) => {
+  function initPipeline() {
+    document.querySelectorAll(".mode-pill button").forEach((btn) => {
       btn.addEventListener("click", () => {
         flowMode = btn.dataset.mode;
         flowStep = 0;
-        document.querySelectorAll(".flow-toggle button").forEach((b) => {
+        document.querySelectorAll(".mode-pill button").forEach((b) => {
           b.classList.toggle("active", b === btn);
         });
-        renderFlow();
+        buildPipeline();
       });
     });
     document.getElementById("flow-prev")?.addEventListener("click", () => {
       flowStep = Math.max(0, flowStep - 1);
-      renderFlow();
+      renderPipeline();
     });
     document.getElementById("flow-next")?.addEventListener("click", () => {
-      flowStep = Math.min(flows[flowMode].length - 1, flowStep + 1);
-      renderFlow();
+      flowStep = Math.min(pipelines[flowMode].length - 1, flowStep + 1);
+      renderPipeline();
     });
-    renderFlow();
+    buildPipeline();
   }
 
-  function renderFlow() {
-    const steps = flows[flowMode];
-    const step = steps[flowStep];
-    const container = document.getElementById("flow-nodes");
-    const caption = document.getElementById("flow-caption");
-    const indicator = document.getElementById("flow-step-indicator");
-    if (!container || !step) return;
-
-    container.innerHTML = "";
-    step.nodes.forEach((id, i) => {
-      if (i > 0) {
-        const arrow = document.createElement("span");
-        arrow.className = "flow-arrow active";
-        arrow.textContent = "\u2192";
-        container.appendChild(arrow);
-      }
-      const node = document.createElement("div");
-      node.className = "flow-node active";
-      node.textContent = flowLabels[id] || id;
-      container.appendChild(node);
-    });
-
-    if (caption) {
-      caption.classList.add("fade");
-      setTimeout(() => {
-        caption.innerHTML = step.caption;
-        caption.classList.remove("fade");
-      }, 120);
-    }
-    if (indicator) indicator.textContent = "Step " + (flowStep + 1) + " of " + steps.length;
-  }
-
+  /* ----- Cluster ----- */
   function initCluster() {
     const update = () => {
       const bucket = document.getElementById("cluster-bucket")?.value || "photos";
       const key = document.getElementById("cluster-key")?.value || "avatar.jpg";
       const primary = placementPrimary(bucket, key);
+      const leader = serverLabel(primary);
+
       document.querySelectorAll(".cluster-node").forEach((el) => {
         const id = el.dataset.node;
         el.classList.toggle("primary", id === primary);
         el.classList.toggle("replica", id !== primary);
       });
+
       const info = document.getElementById("cluster-info-text");
       if (info) {
         info.innerHTML =
-          "<code>" + bucket + "/" + key + "</code> maps to <strong>" + primary + "</strong> as primary. " +
-          "Non-primary nodes forward object requests there. Replicas receive replicate-put from the primary.";
+          'File <code>' + bucket + '/' + key + '</code> is led by <strong>' + leader + '</strong>. ' +
+          'The other two servers hold backup copies. You can upload through any server — requests automatically route to the leader.';
       }
     };
+
     document.getElementById("cluster-update")?.addEventListener("click", update);
     ["cluster-bucket", "cluster-key"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("input", update);
       document.getElementById(id)?.addEventListener("keydown", (e) => {
         if (e.key === "Enter") update();
       });
@@ -247,6 +207,7 @@
     update();
   }
 
+  /* ----- Quorum (friendly) ----- */
   function initQuorum() {
     const nInput = document.getElementById("quorum-n");
     const wInput = document.getElementById("quorum-w");
@@ -255,44 +216,51 @@
     const verdict = document.getElementById("quorum-verdict");
 
     function render() {
-      const N = parseInt(nInput.value, 10);
-      const W = parseInt(wInput.value, 10);
-      const R = parseInt(rInput.value, 10);
-      document.getElementById("quorum-n-val").textContent = N;
-      document.getElementById("quorum-w-val").textContent = W;
-      document.getElementById("quorum-r-val").textContent = R;
-      wInput.max = N; rInput.max = N;
-      if (parseInt(wInput.value, 10) > N) wInput.value = N;
-      if (parseInt(rInput.value, 10) > N) rInput.value = N;
+      const machines = parseInt(nInput.value, 10);
+      const writeNeed = parseInt(wInput.value, 10);
+      const readCheck = parseInt(rInput.value, 10);
+
+      document.getElementById("quorum-n-val").textContent = machines;
+      document.getElementById("quorum-w-val").textContent = writeNeed;
+      document.getElementById("quorum-r-val").textContent = readCheck;
+
+      wInput.max = machines;
+      rInput.max = machines;
+      if (parseInt(wInput.value, 10) > machines) wInput.value = machines;
+      if (parseInt(rInput.value, 10) > machines) rInput.value = machines;
 
       viz.innerHTML = "";
-      for (let i = 1; i <= N; i++) {
+      for (let i = 1; i <= machines; i++) {
         const el = document.createElement("div");
-        el.className = "q-node";
-        const isW = i <= W, isR = i > N - R;
+        el.className = "replica-dot";
+        const isW = i <= writeNeed;
+        const isR = i > machines - readCheck;
         if (isW) el.classList.add("write");
         if (isR) el.classList.add("read");
-        if (isW && isR) el.classList.add("overlap");
-        el.textContent = "N" + i;
+        if (isW && isR) el.classList.add("both");
+        el.textContent = "S" + i;
+        el.title = "Server " + i;
         viz.appendChild(el);
       }
 
-      const overlap = W + R > N;
+      const safe = writeNeed + readCheck > machines;
       if (verdict) {
-        verdict.className = "quorum-verdict " + (overlap ? "ok" : "warn");
-        verdict.innerHTML = overlap
-          ? "<strong>W + R &gt; N</strong> — write and read quorums overlap. Default ObjeX cluster: N=3, W=2, R=2."
-          : "<strong>W + R &le; N</strong> — quorums may not overlap. ObjeX defaults require W + R &gt; N.";
+        verdict.className = "quorum-hint " + (safe ? "good" : "warn");
+        verdict.innerHTML = safe
+          ? "<strong>Safe setup.</strong> Writes and reads share at least one server, so you always read what you wrote. ObjeX defaults to 3 machines, 2 write confirmations, 2 read checks."
+          : "<strong>Risky setup.</strong> With these numbers, a read might not see the latest write. Increase confirmations so writes + reads exceed the machine count.";
       }
     }
+
     [nInput, wInput, rInput].forEach((el) => el?.addEventListener("input", render));
     render();
   }
 
+  /* ----- Tabs ----- */
   function initTabs() {
     document.querySelectorAll("[data-tab-group]").forEach((group) => {
       const name = group.dataset.tabGroup;
-      const buttons = group.querySelectorAll(".tab-btn");
+      const buttons = group.querySelectorAll(".tab-item");
       const panels = document.querySelectorAll('[data-tab-panel="' + name + '"]');
       buttons.forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -304,25 +272,24 @@
     });
   }
 
+  /* ----- Copy ----- */
   function initCopy() {
     document.querySelectorAll(".copy-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const pre = btn.parentElement?.querySelector("pre");
         if (!pre) return;
-        navigator.clipboard.writeText(pre.textContent).then(() => {
+        navigator.clipboard.writeText(pre.textContent.trim()).then(() => {
           btn.textContent = "Copied";
-          btn.classList.add("copied");
-          setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+          setTimeout(() => { btn.textContent = "Copy"; }, 2000);
         });
       });
     });
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    initAOS();
     initNav();
-    initScenarios();
-    initFlow();
+    initTerminal();
+    initPipeline();
     initCluster();
     initQuorum();
     initTabs();

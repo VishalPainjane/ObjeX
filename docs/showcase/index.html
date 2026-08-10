@@ -3,295 +3,290 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="ObjeX — self-hosted S3-compatible object storage in Go. Run locally, test in CI, or deploy a 3-node cluster." />
-  <meta property="og:title" content="ObjeX — S3-Compatible Object Storage" />
-  <meta property="og:description" content="Self-hosted blob storage with AWS SigV4 and optional quorum replication." />
+  <meta name="description" content="ObjeX — run your own S3-compatible file storage locally or across three servers. Open source, written in Go." />
+  <meta property="og:title" content="ObjeX — Your own S3 storage" />
   <meta property="og:url" content="https://vishalpainjane.github.io/ObjeX/" />
-  <title>ObjeX — S3-Compatible Object Storage</title>
+  <title>ObjeX — Your own S3 storage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
   <link rel="stylesheet" href="css/site.css" />
 </head>
 <body>
 
   <nav class="site-nav" id="site-nav">
     <div class="container">
-      <a class="nav-brand" href="#">ObjeX</a>
+      <a class="nav-brand" href="#">
+        <span class="logo-mark">O</span>
+        <span>Obje<span class="accent">X</span></span>
+      </a>
       <ul class="nav-links" id="nav-links">
-        <li><a href="#product">Product</a></li>
-        <li><a href="#scenarios">Use cases</a></li>
+        <li><a href="#cluster">Try the demo</a></li>
+        <li><a href="#quick-start">Quick start</a></li>
         <li><a href="#how-it-works">How it works</a></li>
-        <li><a href="#cluster">Cluster</a></li>
         <li><a href="#docs">Docs</a></li>
       </ul>
       <div class="nav-actions">
-        <a class="btn btn-outline btn-sm" href="https://github.com/VishalPainjane/ObjeX" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn btn-glass btn-sm" href="https://github.com/VishalPainjane/ObjeX" target="_blank" rel="noopener">GitHub</a>
         <a class="btn btn-primary btn-sm" href="#quick-start">Get started</a>
         <button class="nav-toggle" type="button" id="nav-toggle" aria-label="Menu">Menu</button>
       </div>
     </div>
   </nav>
 
+  <!-- Hero -->
   <header class="hero">
-    <div class="hero-bg"></div>
     <div class="container">
-      <div class="hero-badge" data-aos="fade-up">Open source · MIT · Go</div>
-      <h1 data-aos="fade-up" data-aos-delay="50">S3-compatible storage you can run anywhere</h1>
-      <p class="hero-lead" data-aos="fade-up" data-aos-delay="100">
-        ObjeX gives your applications a local S3 endpoint for development and CI,
-        or a three-node cluster with quorum replication — one static binary, no cloud account required.
-      </p>
-      <div class="hero-actions" data-aos="fade-up" data-aos-delay="150">
-        <a class="btn btn-primary" href="#quick-start">Get started for free</a>
-        <a class="btn btn-outline" href="https://github.com/VishalPainjane/ObjeX" target="_blank" rel="noopener">View on GitHub</a>
-      </div>
-
-      <div class="hero-preview" data-aos="fade-up" data-aos-delay="200">
-        <div class="preview-chrome">
-          <span class="preview-dot"></span>
-          <span class="preview-dot"></span>
-          <span class="preview-dot"></span>
-          <span class="preview-title">terminal — objex demo</span>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="hero-badge"><span class="dot"></span> Open source · MIT · Go</div>
+          <h1>Your own <span class="highlight">S3 storage</span>, on your machine</h1>
+          <p class="hero-lead">
+            Upload and download files using the same AWS SDK and CLI you already know —
+            but running locally on your laptop, in CI, or across three servers you control.
+          </p>
+          <p class="hero-pitch">
+            No AWS account needed for development. One Docker command to start. Optional cluster mode copies your files across multiple machines so one server dying does not lose data.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#quick-start">Get started</a>
+            <a class="btn btn-glass" href="https://github.com/VishalPainjane/ObjeX" target="_blank" rel="noopener">View on GitHub</a>
+            <a class="btn btn-glass" href="#cluster">Try the cluster demo</a>
+          </div>
         </div>
-        <div class="preview-body">
-<span class="dim">$</span> docker compose up -d --build
-<span class="ok">ObjeX listening on :9000</span>
-
-<span class="dim">$</span> aws --endpoint-url http://localhost:9000 s3 cp photo.jpg s3://uploads/
-<span class="ok">upload: ./photo.jpg to s3://uploads/photo.jpg</span>
-
-<span class="dim">$</span> curl -sf http://localhost:9000/health/ready && echo ready
-<span class="ok">ready</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <div class="stats-band">
-    <div class="container">
-      <div class="stats-grid">
-        <div class="stat-item" data-aos="fade-up"><strong>S3</strong><span>SigV4 · multipart · presign</span></div>
-        <div class="stat-item" data-aos="fade-up" data-aos-delay="50"><strong>1</strong><span>binary · Docker · Compose</span></div>
-        <div class="stat-item" data-aos="fade-up" data-aos-delay="100"><strong>N/R/W</strong><span>quorum · hints · read repair</span></div>
-        <div class="stat-item" data-aos="fade-up" data-aos-delay="150"><strong>MIT</strong><span>fork · ship · contribute</span></div>
-      </div>
-    </div>
-  </div>
-
-  <section class="section" id="product">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <p class="section-label">Product</p>
-        <h2>One platform for local dev, CI, and small-scale distribution</h2>
-        <p>Metadata in SQLite. Blobs on disk. Cluster mode adds replication without changing your SDK code.</p>
-      </div>
-
-      <div class="feature-split" data-aos="fade-up">
-        <div class="feature-copy">
-          <h3>S3 API your SDK already speaks</h3>
-          <p>Point aws-cli, boto3, or the AWS SDK at ObjeX. Same PUT, GET, HEAD, DELETE, listing, Range, multipart, and batch delete.</p>
-          <ul class="feature-list">
-            <li>AWS Signature Version 4 on all object routes</li>
-            <li>Presigned GET/PUT for shareable upload links</li>
-            <li>Content-addressed blobs with atomic writes</li>
-          </ul>
-          <a class="card-link" href="https://github.com/VishalPainjane/ObjeX#s3-api" target="_blank" rel="noopener">API reference on GitHub</a>
-        </div>
-        <div class="feature-panel">
-          <div class="panel-header">S3 operations</div>
-          <div class="panel-body">
-            <div class="table-wrap">
-              <table class="data-table">
-                <tr><th>Method</th><th>Action</th></tr>
-                <tr><td><code>PUT</code></td><td>Upload object</td></tr>
-                <tr><td><code>GET</code></td><td>Download (+ Range)</td></tr>
-                <tr><td><code>POST</code></td><td>Batch delete</td></tr>
-                <tr><td><code>POST</code></td><td>Multipart upload</td></tr>
-              </table>
+        <div class="hero-visual">
+          <div class="hero-glow"></div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="t-dot r"></span>
+              <span class="t-dot y"></span>
+              <span class="t-dot g"></span>
+              <span class="terminal-title">objex</span>
+            </div>
+            <div class="terminal-body" id="terminal-body">
+              <div class="terminal-line">
+                <span class="prompt">$</span><span class="cmd" id="term-cmd"></span><span class="cursor-blink"></span>
+              </div>
+              <div class="terminal-line" id="term-out" style="display:none">
+                <span class="out" id="term-out-text"></span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="feature-split reverse" style="margin-top:4rem" data-aos="fade-up">
-        <div class="feature-copy">
-          <h3>Cluster mode when one machine is not enough</h3>
-          <p>Static membership, rendezvous placement, primary forwarding. The primary coordinates quorum writes and fans out replicas.</p>
-          <ul class="feature-list">
-            <li>Configurable replication factor and read/write quorum</li>
-            <li>Durable hints when a replica is temporarily offline</li>
-            <li>Peer health probes and background healing</li>
-          </ul>
-          <a class="card-link" href="https://github.com/VishalPainjane/ObjeX/blob/main/docs/architecture/distributed-architecture.md" target="_blank" rel="noopener">Distributed architecture</a>
+      <div class="value-strip">
+        <div class="value-card">
+          <h3>Works with tools you know</h3>
+          <p>aws-cli, boto3, and the AWS SDK — just change the endpoint URL to localhost.</p>
         </div>
-        <div class="feature-panel">
-          <div class="panel-header">3-node cluster</div>
-          <div class="panel-body" style="font-family:var(--mono);font-size:0.8rem;color:var(--text-secondary);line-height:1.8">
-            node-1 :9001  <span style="color:var(--accent)">primary</span><br>
-            node-2 :9002  replica<br>
-            node-3 :9003  replica<br><br>
-            N=3  W=2  R=2<br>
-            W + R &gt; N  overlap OK
-          </div>
+        <div class="value-card">
+          <h3>One command to run</h3>
+          <p>Docker Compose starts the server on port 9000. No cloud signup, no config wizard.</p>
+        </div>
+        <div class="value-card">
+          <h3>Copies across servers</h3>
+          <p>Run three nodes and your files are stored on all of them. One machine can go offline.</p>
         </div>
       </div>
     </div>
-  </section>
+  </header>
 
-  <section class="section section-alt" id="scenarios">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <p class="section-label">Use cases</p>
-        <h2>Built for how you actually work</h2>
-        <p>Side projects, CI pipelines, cheap VPS clusters, and learning distributed systems — not hypothetical enterprise diagrams.</p>
-      </div>
-      <div class="scenario-layout" data-aos="fade-up">
-        <div id="scenario-list"></div>
-        <div class="scenario-detail" id="scenario-detail"></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="how-it-works">
-    <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <p class="section-label">How it works</p>
-        <h2>Trace a PUT request end to end</h2>
-        <p>Step through single-node and cluster paths to see where auth, storage, and replication happen.</p>
-      </div>
-      <div data-aos="fade-up">
-        <div class="flow-bar">
-          <div class="flow-toggle">
-            <button type="button" class="active" data-mode="single">Single node</button>
-            <button type="button" data-mode="cluster">3-node cluster</button>
-          </div>
-          <button type="button" class="btn btn-outline btn-sm" id="flow-prev">Back</button>
-          <button type="button" class="btn btn-accent btn-sm" id="flow-next">Next step</button>
-          <span class="flow-step-label" id="flow-step-indicator">Step 1 of 6</span>
-        </div>
-        <div class="flow-stage">
-          <div class="flow-nodes" id="flow-nodes"></div>
-          <p class="flow-caption" id="flow-caption"></p>
-        </div>
-      </div>
-    </div>
-  </section>
-
+  <!-- Cluster demo — main interactive section -->
   <section class="section section-alt" id="cluster">
     <div class="container">
-      <div class="section-header" data-aos="fade-up">
-        <p class="section-label">Cluster</p>
-        <h2>Placement and quorum, interactively</h2>
-        <p>Every node computes the same primary from bucket + key. Drag quorum sliders to see how W and R interact.</p>
+      <div class="section-header">
+        <p class="section-label">Interactive demo</p>
+        <h2>See how files get placed across servers</h2>
+        <p>Type any bucket and filename. ObjeX picks which server is the "leader" for that file — every node agrees on the same answer.</p>
       </div>
 
-      <div class="cluster-layout" data-aos="fade-up">
+      <div class="cluster-layout">
         <div class="cluster-viz">
-          <div class="client-badge"><span>S3 Client</span></div>
+          <div class="client-pill"><span>Your app (aws-cli / SDK)</span></div>
           <div class="cluster-nodes">
-            <div class="cluster-node" data-node="node-1"><div class="node-box">N1</div><span class="node-label">:9001</span></div>
-            <div class="cluster-node" data-node="node-2"><div class="node-box">N2</div><span class="node-label">:9002</span></div>
-            <div class="cluster-node" data-node="node-3"><div class="node-box">N3</div><span class="node-label">:9003</span></div>
+            <div class="cluster-node" data-node="node-1">
+              <div class="server-icon"><span class="si-label">Server</span><span class="si-name">1</span></div>
+              <span class="node-port">:9001</span>
+            </div>
+            <div class="cluster-node" data-node="node-2">
+              <div class="server-icon"><span class="si-label">Server</span><span class="si-name">2</span></div>
+              <span class="node-port">:9002</span>
+            </div>
+            <div class="cluster-node" data-node="node-3">
+              <div class="server-icon"><span class="si-label">Server</span><span class="si-name">3</span></div>
+              <span class="node-port">:9003</span>
+            </div>
           </div>
         </div>
-        <div class="cluster-controls">
-          <h4>Placement lookup</h4>
-          <div class="input-row">
-            <input type="text" id="cluster-bucket" value="photos" placeholder="bucket" aria-label="Bucket" />
-            <input type="text" id="cluster-key" value="avatar.jpg" placeholder="key" aria-label="Key" />
-            <button type="button" class="btn btn-accent btn-sm" id="cluster-update">Place</button>
-          </div>
-          <p class="cluster-result" id="cluster-info-text"></p>
-        </div>
-      </div>
 
-      <div class="quorum-grid" data-aos="fade-up">
-        <div class="card quorum-controls">
-          <h3 style="margin-bottom:1rem">Quorum playground</h3>
-          <label>N — replication factor <span class="quorum-val" id="quorum-n-val">3</span>
-            <input type="range" id="quorum-n" min="1" max="5" value="3" />
-          </label>
-          <label>W — write quorum <span class="quorum-val" id="quorum-w-val">2</span>
-            <input type="range" id="quorum-w" min="1" max="5" value="2" />
-          </label>
-          <label>R — read quorum <span class="quorum-val" id="quorum-r-val">2</span>
-            <input type="range" id="quorum-r" min="1" max="5" value="2" />
-          </label>
-        </div>
-        <div class="card">
-          <div class="quorum-nodes" id="quorum-viz"></div>
-          <div id="quorum-verdict" class="quorum-verdict ok"></div>
+        <div class="cluster-side">
+          <div class="panel">
+            <h4>Where does this file live?</h4>
+            <p class="panel-sub">Enter a bucket name and file path — same as an S3 path.</p>
+            <div class="input-row">
+              <input type="text" id="cluster-bucket" value="photos" placeholder="bucket" aria-label="Bucket" />
+              <input type="text" id="cluster-key" value="avatar.jpg" placeholder="file.jpg" aria-label="File path" />
+            </div>
+            <button type="button" class="btn btn-accent" id="cluster-update" style="width:100%">Show placement</button>
+            <p class="cluster-result" id="cluster-info-text" style="margin-top:1rem"></p>
+          </div>
+
+          <div class="panel">
+            <h4>How many servers need to confirm?</h4>
+            <p class="panel-sub">Drag the sliders. This controls how many copies must agree before a write or read succeeds.</p>
+            <div class="slider-group">
+              <label><span>Machines that hold a copy</span><span class="val" id="quorum-n-val">3</span></label>
+              <input type="range" id="quorum-n" min="1" max="5" value="3" />
+            </div>
+            <div class="slider-group">
+              <label><span>Writes need this many confirmations</span><span class="val" id="quorum-w-val">2</span></label>
+              <input type="range" id="quorum-w" min="1" max="5" value="2" />
+            </div>
+            <div class="slider-group">
+              <label><span>Reads check this many copies</span><span class="val" id="quorum-r-val">2</span></label>
+              <input type="range" id="quorum-r" min="1" max="5" value="2" />
+            </div>
+            <div class="replica-dots" id="quorum-viz"></div>
+            <div id="quorum-verdict" class="quorum-hint good"></div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- Quick start — moved up -->
   <section class="section" id="quick-start">
     <div class="container">
-      <div class="section-header" data-aos="fade-up">
+      <div class="section-header">
         <p class="section-label">Quick start</p>
         <h2>Running in under a minute</h2>
+        <p>Clone, start Docker, upload a file. Same steps on Mac, Linux, or Windows.</p>
       </div>
-      <div data-aos="fade-up">
-        <div class="tab-bar" data-tab-group="start">
-          <button type="button" class="tab-btn active" data-tab="docker">Docker</button>
-          <button type="button" class="tab-btn" data-tab="aws">AWS CLI</button>
-          <button type="button" class="tab-btn" data-tab="cluster">Cluster</button>
+      <div class="quick-grid">
+        <div class="tab-list" data-tab-group="start">
+          <button type="button" class="tab-item active" data-tab="docker">
+            <strong>Docker</strong><span>Fastest way to try it</span>
+          </button>
+          <button type="button" class="tab-item" data-tab="aws">
+            <strong>AWS CLI</strong><span>Upload your first file</span>
+          </button>
+          <button type="button" class="tab-item" data-tab="cluster">
+            <strong>3 servers</strong><span>Cluster mode</span>
+          </button>
         </div>
-        <div class="tab-panel active" data-tab-panel="start" data-tab="docker">
-          <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>git clone https://github.com/VishalPainjane/ObjeX.git
+        <div>
+          <div class="tab-panel active" data-tab-panel="start" data-tab="docker">
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>git clone https://github.com/VishalPainjane/ObjeX.git
 cd ObjeX
 docker compose up -d --build
-# http://localhost:9000</pre></div>
-        </div>
-        <div class="tab-panel" data-tab-panel="start" data-tab="aws">
-          <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>export AWS_ACCESS_KEY_ID=OBXTESTKEY00000001
-export AWS_SECRET_ACCESS_KEY=testsecretkeythatislongenoughforhmacsha256test
-aws --endpoint-url http://localhost:9000 s3 mb s3://photos
-aws --endpoint-url http://localhost:9000 s3 cp file.txt s3://photos/</pre></div>
-        </div>
-        <div class="tab-panel" data-tab-panel="start" data-tab="cluster">
-          <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>docker compose -f docker-compose.cluster.yml up -d --build
+# Open http://localhost:9000</pre></div>
+          </div>
+          <div class="tab-panel" data-tab-panel="start" data-tab="aws">
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3 mb s3://my-bucket
+aws --endpoint-url http://localhost:9000 s3 cp hello.txt s3://my-bucket/</pre></div>
+          </div>
+          <div class="tab-panel" data-tab-panel="start" data-tab="cluster">
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>docker compose -f docker-compose.cluster.yml up -d --build
 curl http://localhost:9001/cluster</pre></div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- How it works — vertical pipeline -->
+  <section class="section section-alt" id="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">How it works</p>
+        <h2>What happens when you upload a file</h2>
+        <p>The full path is always visible. Click through each step — the list scrolls to keep the active step in focus.</p>
+      </div>
+
+      <div class="pipeline-controls">
+        <div class="mode-pill">
+          <button type="button" class="active" data-mode="single">One server</button>
+          <button type="button" data-mode="cluster">Three servers</button>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="flow-prev">Previous</button>
+        <button type="button" class="btn btn-accent btn-sm" id="flow-next">Next step</button>
+        <span style="font-size:0.8rem;color:var(--text-muted);margin-left:auto" id="flow-step-indicator"></span>
+      </div>
+
+      <div class="pipeline-wrap">
+        <div class="pipeline-viewport">
+          <div class="pipeline-track" id="pipeline-track"></div>
+        </div>
+        <div class="pipeline-detail" id="pipeline-detail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Simple pitch -->
+  <section class="section" id="product">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">What is ObjeX</p>
+        <h2>File storage without the cloud bill</h2>
+      </div>
+      <div class="pitch-grid">
+        <div class="pitch-card">
+          <h3>For local development</h3>
+          <p>Your web app uploads profile photos or documents. Point the S3 client at localhost instead of AWS — same code, zero cost per test run.</p>
+        </div>
+        <div class="pitch-card">
+          <h3>For CI pipelines</h3>
+          <p>GitHub Actions runs integration tests against a real S3 endpoint in a container. No cloud credentials, no flaky shared staging buckets.</p>
+        </div>
+        <div class="pitch-card">
+          <h3>For small self-hosted setups</h3>
+          <p>Three cheap VPS machines each hold a copy of your files. If one goes down, the other two still have your data.</p>
+        </div>
+        <div class="pitch-card">
+          <h3>For learning systems code</h3>
+          <p>Readable Go source for placement, replication, and repair — with tests that simulate servers going offline.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Docs -->
   <section class="section section-alt" id="docs">
     <div class="container">
-      <div class="section-header" data-aos="fade-up">
+      <div class="section-header">
         <p class="section-label">Documentation</p>
-        <h2>Deep dives live in the repository</h2>
+        <h2>Go deeper in the repository</h2>
       </div>
-      <div class="grid-3 docs-grid" data-aos="fade-up">
+      <div class="grid-3">
         <a class="card" href="https://github.com/VishalPainjane/ObjeX/blob/main/docs/architecture/architecture.md" target="_blank" rel="noopener">
-          <h3>Architecture</h3><p>Components, request flow, package map.</p><span class="card-link">Read on GitHub</span>
+          <h3>Architecture</h3><p>How the pieces fit together.</p><span class="card-link">Read on GitHub</span>
         </a>
-        <a class="card" href="https://github.com/VishalPainjane/ObjeX/blob/main/docs/architecture/quorum.md" target="_blank" rel="noopener">
-          <h3>Quorum</h3><p>N/R/W semantics, versions, tombstones.</p><span class="card-link">Read on GitHub</span>
+        <a class="card" href="https://github.com/VishalPainjane/ObjeX/blob/main/docs/architecture/distributed-architecture.md" target="_blank" rel="noopener">
+          <h3>Cluster mode</h3><p>Replication, forwarding, and repair.</p><span class="card-link">Read on GitHub</span>
         </a>
-        <a class="card" href="https://github.com/VishalPainjane/ObjeX/blob/main/docs/showcase/case-study.md" target="_blank" rel="noopener">
-          <h3>Case study</h3><p>Demo script and interview talking points.</p><span class="card-link">Read on GitHub</span>
+        <a class="card" href="https://github.com/VishalPainjane/ObjeX/blob/main/README.md" target="_blank" rel="noopener">
+          <h3>Full README</h3><p>API reference, config, and project layout.</p><span class="card-link">Read on GitHub</span>
         </a>
       </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container" data-aos="fade-up">
-      <div class="cta-band">
-        <h2>Start with ObjeX today</h2>
-        <p>Clone the repo, run Docker Compose, and point your S3 client at localhost. MIT licensed — use it in your projects.</p>
-        <div class="btn-row">
-          <a class="btn btn-accent" href="https://github.com/VishalPainjane/ObjeX" target="_blank" rel="noopener">Star on GitHub</a>
-          <a class="btn btn-outline" href="https://github.com/VishalPainjane/ObjeX/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing guide</a>
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-card">
+        <h2>Ready to run your own storage?</h2>
+        <p>Clone the repo, run one Docker command, and upload your first file in under a minute. Free to use, MIT licensed.</p>
+        <div class="cta-actions">
+          <a class="btn btn-accent" href="#quick-start">Get started</a>
+          <a class="btn btn-glass" href="https://github.com/VishalPainjane/ObjeX" target="_blank" rel="noopener">Star on GitHub</a>
+          <a class="btn btn-glass" href="https://github.com/VishalPainjane/ObjeX/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contribute</a>
         </div>
-        <div class="cta-badges">
-          <img src="https://github.com/VishalPainjane/ObjeX/actions/workflows/ci.yml/badge.svg" alt="CI" height="22" />
-          <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT" height="22" />
+        <div class="cta-meta">
+          <span>MIT License</span>
+          <span>Written in Go</span>
+          <span>CI on every push</span>
         </div>
       </div>
     </div>
@@ -299,43 +294,21 @@ curl http://localhost:9001/cluster</pre></div>
 
   <footer class="site-footer">
     <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <strong style="font-size:1.1rem">ObjeX</strong>
-          <p>Self-hosted S3-compatible object storage. Built by Vishal Painjane.</p>
+      <div class="footer-row">
+        <div class="nav-brand" style="font-size:1rem">
+          <span class="logo-mark" style="width:28px;height:28px;font-size:0.85rem">O</span>
+          <span>ObjeX</span>
         </div>
-        <div class="footer-col">
-          <h4>Product</h4>
-          <ul>
-            <li><a href="#product">Features</a></li>
-            <li><a href="#cluster">Cluster</a></li>
-            <li><a href="#quick-start">Quick start</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Resources</h4>
-          <ul>
-            <li><a href="https://github.com/VishalPainjane/ObjeX/tree/main/docs/architecture" target="_blank" rel="noopener">Docs</a></li>
-            <li><a href="https://github.com/VishalPainjane/ObjeX/blob/main/ROADMAP.md" target="_blank" rel="noopener">Roadmap</a></li>
-            <li><a href="https://github.com/VishalPainjane/ObjeX/issues" target="_blank" rel="noopener">Issues</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Connect</h4>
-          <ul>
-            <li><a href="https://github.com/VishalPainjane" target="_blank" rel="noopener">GitHub</a></li>
-            <li><a href="mailto:painjanevishal2204@gmail.com">Email</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <span>MIT License</span>
-        <span>ObjeX &copy; 2026 Vishal Painjane</span>
+        <ul class="footer-links">
+          <li><a href="https://github.com/VishalPainjane/ObjeX">GitHub</a></li>
+          <li><a href="https://github.com/VishalPainjane/ObjeX/tree/main/docs/architecture">Docs</a></li>
+          <li><a href="mailto:painjanevishal2204@gmail.com">Contact</a></li>
+        </ul>
+        <span>Built by Vishal Painjane</span>
       </div>
     </div>
   </footer>
 
-  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
   <script src="js/site.js"></script>
 </body>
 </html>
