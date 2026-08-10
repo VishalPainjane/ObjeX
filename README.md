@@ -326,7 +326,7 @@ docker-compose.cluster.yml   Three-node profile
 | [Case study](docs/showcase/case-study.md) | Interview talking points and demo script |
 | [Roadmap](ROADMAP.md) | Shipped features and planned work |
 
-Portfolio site (enable **GitHub Pages → Source: GitHub Actions**): [vishalpainjane.github.io/ObjeX](https://vishalpainjane.github.io/ObjeX/)
+Project site (interactive demos + docs index): [vishalpainjane.github.io/ObjeX](https://vishalpainjane.github.io/ObjeX/) — enable **GitHub Pages → Source: GitHub Actions** if not already live.
 
 ---
 
