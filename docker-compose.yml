@@ -1,0 +1,18 @@
+services:
+  objex:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    environment:
+      OBJEX_HTTP_ADDRESS: ":9000"
+      OBJEX_DATA_DIR: /data
+      OBJEX_PUBLIC_URL: "http://localhost:9000"
+      OBJEX_ACCESS_KEY_ID: "OBXTESTKEY00000001"
+      OBJEX_SECRET_ACCESS_KEY: "testsecretkeythatislongenoughforhmacsha256test"
+    volumes:
+      - objex-data:/data
+
+volumes:
+  objex-data:

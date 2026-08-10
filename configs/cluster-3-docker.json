@@ -1,0 +1,9 @@
+{
+  "cluster": {
+    "nodes": [
+      { "id": "node-1", "address": "objex-node-1:9001" },
+      { "id": "node-2", "address": "objex-node-2:9002" },
+      { "id": "node-3", "address": "objex-node-3:9003" }
+    ]
+  }
+}

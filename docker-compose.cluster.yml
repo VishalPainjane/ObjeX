@@ -1,0 +1,62 @@
+services:
+  objex-node-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9001:9001"
+    environment:
+      OBJEX_NODE_ID: node-1
+      OBJEX_HTTP_ADDRESS: ":9001"
+      OBJEX_DATA_DIR: /data
+      OBJEX_PUBLIC_URL: "http://localhost:9001"
+      OBJEX_CLUSTER_CONFIG: /etc/objex/cluster.json
+      OBJEX_CLUSTER_INTERNAL_TOKEN: "dev-cluster-token-change-me"
+      OBJEX_ACCESS_KEY_ID: "OBXTESTKEY00000001"
+      OBJEX_SECRET_ACCESS_KEY: "testsecretkeythatislongenoughforhmacsha256test"
+    volumes:
+      - objex-node-1-data:/data
+      - ./configs/cluster-3-docker.json:/etc/objex/cluster.json:ro
+
+  objex-node-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9002:9002"
+    environment:
+      OBJEX_NODE_ID: node-2
+      OBJEX_HTTP_ADDRESS: ":9002"
+      OBJEX_DATA_DIR: /data
+      OBJEX_PUBLIC_URL: "http://localhost:9002"
+      OBJEX_CLUSTER_CONFIG: /etc/objex/cluster.json
+      OBJEX_CLUSTER_INTERNAL_TOKEN: "dev-cluster-token-change-me"
+      OBJEX_ACCESS_KEY_ID: "OBXTESTKEY00000001"
+      OBJEX_SECRET_ACCESS_KEY: "testsecretkeythatislongenoughforhmacsha256test"
+    volumes:
+      - objex-node-2-data:/data
+      - ./configs/cluster-3-docker.json:/etc/objex/cluster.json:ro
+
+  objex-node-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9003:9003"
+    environment:
+      OBJEX_NODE_ID: node-3
+      OBJEX_HTTP_ADDRESS: ":9003"
+      OBJEX_DATA_DIR: /data
+      OBJEX_PUBLIC_URL: "http://localhost:9003"
+      OBJEX_CLUSTER_CONFIG: /etc/objex/cluster.json
+      OBJEX_CLUSTER_INTERNAL_TOKEN: "dev-cluster-token-change-me"
+      OBJEX_ACCESS_KEY_ID: "OBXTESTKEY00000001"
+      OBJEX_SECRET_ACCESS_KEY: "testsecretkeythatislongenoughforhmacsha256test"
+    volumes:
+      - objex-node-3-data:/data
+      - ./configs/cluster-3-docker.json:/etc/objex/cluster.json:ro
+
+volumes:
+  objex-node-1-data:
+  objex-node-2-data:
+  objex-node-3-data:

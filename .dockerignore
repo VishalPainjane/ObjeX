@@ -1,0 +1,11 @@
+.git
+.github
+data/
+**/*.test
+coverage.out
+*.md
+docs/
+scripts/
+configs/
+docker-compose*.yml
+.env*

@@ -1,0 +1,9 @@
+{
+  "cluster": {
+    "nodes": [
+      { "id": "node-1", "address": "localhost:9001" },
+      { "id": "node-2", "address": "localhost:9002" },
+      { "id": "node-3", "address": "localhost:9003" }
+    ]
+  }
+}
