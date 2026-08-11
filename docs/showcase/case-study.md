@@ -1,4 +1,4 @@
-# ObjeX — Interview Case Study
+# ObjeX | Interview Case Study
 
 **Author:** Vishal Painjane · [GitHub](https://github.com/VishalPainjane) · painjanevishal2204@gmail.com
 
@@ -8,7 +8,7 @@ Use this doc for technical interviews, portfolio reviews, and recruiter screens.
 
 ## Elevator pitch (30 seconds)
 
-> **ObjeX** is a self-hosted, S3-compatible object storage system I built in Go. It implements the core S3 API with AWS Signature V4, multipart uploads, and presigned URLs. I extended it with **distributed replication** — configurable quorum reads/writes (N/R/W), rendezvous hashing placement, **hinted handoff**, **read repair**, peer health monitoring, and background healing for partial replicas — the same class of problems MinIO and Ceph solve at a smaller scale.
+> **ObjeX** is a self-hosted, S3-compatible object storage system I built in Go. It implements the core S3 API with AWS Signature V4, multipart uploads, and presigned URLs. I extended it with **distributed replication**: configurable quorum reads/writes (N/R/W), rendezvous hashing placement, **hinted handoff**, **read repair**, peer health monitoring, and background healing for partial replicas. Same class of problems MinIO and Ceph solve at a smaller scale.
 
 ---
 
@@ -43,7 +43,7 @@ S3 clients (aws-cli, SDKs)
  → peer health + healing
 ```
 
-**Key design choice:** metadata and bytes are separate — SQLite for indexes, hashed filesystem paths for blobs. Cluster mode adds a replication layer without changing the S3 client contract.
+**Key design choice:** metadata and bytes are separate. SQLite for indexes, hashed filesystem paths for blobs. Cluster mode adds a replication layer without changing the S3 client contract.
 
 ---
 
@@ -65,7 +65,7 @@ curl http://localhost:9000/health/ready
 ```bash
 docker compose -f docker-compose.cluster.yml up -d --build
 curl http://localhost:9001/cluster | jq .
-# Upload via node 1, read via node 2 — show forwarding + replication
+# Upload via node 1, read via node 2. Show forwarding and replication.
 ```
 
 Talking points: placement primary, write quorum, what happens when a replica is down (hints), `/metrics` counters.
@@ -77,7 +77,7 @@ Talking points: placement primary, write quorum, what happens when a replica is 
 | Question | Answer |
 |----------|--------|
 | Why Go? | Single static binary, great concurrency for replication fan-out, fits systems portfolio. |
-| How is the physical path chosen? | `sha256(bucket/key)` → `{bucket}/{aa}/{bb}/{hash}.blob` — no path traversal, even distribution. |
+| How is the physical path chosen? | `sha256(bucket/key)` → `{bucket}/{aa}/{bb}/{hash}.blob`. No path traversal, even distribution. |
 | What consistency model? | Configurable N/R/W quorum; versioned tombstones; read repair on GET. |
 | What if a node dies mid-write? | Write quorum must succeed; failed replicas get durable hints with staged payloads. |
 | How do you test distribution? | Multi-node `httptest` matrix, fault injection (refused peers), hint delivery + healing tests. |

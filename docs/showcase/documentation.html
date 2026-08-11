@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="ObjeX technical documentation: S3 API reference, installation, cluster mode, configuration, and code examples." />
+  <title>ObjeX | Technical Documentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/documentation.css" />
+</head>
+<body class="doc-body">
+
+  <nav class="site-nav" id="site-nav">
+    <div class="container">
+      <a class="nav-brand" href="index.html">
+        <svg class="logo-icon" width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+          <rect x="3" y="20" width="28" height="7" rx="1.5" fill="#9B663A"/>
+          <rect x="6" y="11" width="22" height="7" rx="1.5" fill="#7A4E2D"/>
+          <rect x="9" y="2" width="16" height="7" rx="1.5" fill="#3D2914"/>
+        </svg>
+        <span class="logo-text">Obje<span class="accent">X</span></span>
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="documentation.html" aria-current="page">Documentation</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a class="btn btn-glass btn-sm" href="https://github.com/VishalPainjane/ObjeX" target="_blank" rel="noopener">GitHub</a>
+        <button class="nav-toggle" type="button" id="nav-toggle" aria-label="Menu">Menu</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="doc-shell">
+    <aside class="doc-sidebar" aria-label="Documentation navigation">
+      <div class="doc-sidebar-inner">
+        <p class="doc-sidebar-title">Technical docs</p>
+
+        <nav class="doc-nav-group">
+          <p class="doc-nav-group-label">Getting Started</p>
+          <a href="#intro">Introduction</a>
+          <a href="#install">Installation</a>
+          <a href="#verify">Verify setup</a>
+        </nav>
+
+        <nav class="doc-nav-group">
+          <p class="doc-nav-group-label">Authentication</p>
+          <a href="#auth">SigV4 and tokens</a>
+        </nav>
+
+        <nav class="doc-nav-group">
+          <p class="doc-nav-group-label">API Reference</p>
+          <a href="#api-buckets">Buckets</a>
+          <a href="#api-objects">Objects</a>
+          <a href="#api-multipart">Multipart</a>
+          <a href="#api-batch">Batch delete</a>
+          <a href="#api-copy">Copy</a>
+          <a href="#api-utils">Utilities</a>
+        </nav>
+
+        <nav class="doc-nav-group">
+          <p class="doc-nav-group-label">Code Examples</p>
+          <a href="#ex-cli">AWS CLI</a>
+          <a href="#ex-python">Python (boto3)</a>
+          <a href="#ex-node">Node.js SDK</a>
+          <a href="#ex-go">Go SDK</a>
+          <a href="#ex-ci">CI (GitHub Actions)</a>
+        </nav>
+
+        <nav class="doc-nav-group">
+          <p class="doc-nav-group-label">Cluster</p>
+          <a href="#cluster-install">Cluster install</a>
+          <a href="#cluster-config">Cluster config</a>
+          <a href="#cluster-quorum">Quorum (N/W/R)</a>
+          <a href="#cluster-demo">Cluster demo</a>
+        </nav>
+
+        <nav class="doc-nav-group">
+          <p class="doc-nav-group-label">Configuration</p>
+          <a href="#config-env">Environment variables</a>
+          <a href="#config-cluster-json">Cluster JSON</a>
+        </nav>
+
+        <nav class="doc-nav-group">
+          <p class="doc-nav-group-label">Operations</p>
+          <a href="#ops-health">Health checks</a>
+          <a href="#ops-metrics">Metrics</a>
+          <a href="#ops-jobs">Background jobs</a>
+        </nav>
+
+        <nav class="doc-nav-group">
+          <p class="doc-nav-group-label">Development</p>
+          <a href="#dev-source">Run from source</a>
+          <a href="#dev-test">Testing</a>
+          <a href="#dev-layout">Project layout</a>
+        </nav>
+
+        <nav class="doc-nav-group">
+          <p class="doc-nav-group-label">Troubleshooting</p>
+          <a href="#troubleshoot">Common errors</a>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="doc-main">
+      <header class="doc-hero">
+        <p class="doc-hero-label">Reference</p>
+        <h1>ObjeX Technical Documentation</h1>
+        <p class="doc-lead">
+          Complete reference for ObjeX, a self-hosted S3-compatible object store written in Go.
+          Metadata lives in SQLite. Payloads are content-addressed files on disk.
+          All examples below use the development credentials shipped with Docker Compose.
+        </p>
+      </header>
+
+      <div class="doc-credentials">
+        <p class="doc-credentials-title">Development credentials</p>
+        <dl class="doc-credentials-grid">
+          <div><dt>Single node</dt><dd><code>http://localhost:9000</code></dd></div>
+          <div><dt>Cluster nodes</dt><dd><code>9001</code>, <code>9002</code>, <code>9003</code></dd></div>
+          <div><dt>Access key</dt><dd><code>OBXTESTKEY00000001</code></dd></div>
+          <div><dt>Secret key</dt><dd><code>testsecretkeythatislongenoughforhmacsha256test</code></dd></div>
+          <div><dt>Region</dt><dd><code>us-east-1</code></dd></div>
+        </dl>
+      </div>
+
+      <!-- Getting Started: intro -->
+      <section class="doc-section" id="intro">
+        <h2>Introduction</h2>
+        <p>
+          ObjeX exposes an AWS S3-compatible HTTP API. Clients use the same SDKs, signing rules,
+          and HTTP verbs they already use against AWS, pointed at your ObjeX endpoint instead of
+          <code>s3.amazonaws.com</code>.
+        </p>
+        <p>
+          The implementation splits concerns deliberately. SQLite holds buckets, object metadata,
+          multipart state, credentials, and replication hints. The filesystem stores opaque blobs
+          at paths derived from <code>SHA256("{bucket}/{key}")</code>. Writes land as temporary
+          files and are renamed into place atomically. ETags are MD5 hex digests (multipart uploads
+          use <code>{md5}-{partCount}</code>).
+        </p>
+        <h3>Use cases</h3>
+        <ul>
+          <li>Local or air-gapped S3 endpoint for development and integration tests</li>
+          <li>CI fixtures without cloud credentials or network dependencies</li>
+          <li>Edge or on-prem object storage at modest scale</li>
+          <li>Learning distributed storage: placement, quorum, hints, and read repair in readable Go</li>
+        </ul>
+        <div class="doc-note">
+          ObjeX targets correctness and clarity at modest scale. It is not a replacement for
+          multi-petabyte erasure-coded fleets. See the architecture docs on GitHub for design deep-dives.
+        </div>
+      </section>
+
+      <!-- install -->
+      <section class="doc-section" id="install">
+        <h2>Installation</h2>
+
+        <h3>Docker Compose (recommended)</h3>
+        <p>Single-node profile listens on port 9000.</p>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>git clone https://github.com/VishalPainjane/ObjeX.git
+cd ObjeX
+docker compose up -d --build</pre></div>
+
+        <h3>Run from source</h3>
+        <p>Set credentials and data directory before starting the binary.</p>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>export OBJEX_HTTP_ADDRESS=:9000
+export OBJEX_DATA_DIR=./data
+export OBJEX_ACCESS_KEY_ID=OBXTESTKEY00000001
+export OBJEX_SECRET_ACCESS_KEY=testsecretkeythatislongenoughforhmacsha256test
+
+go run ./cmd/objex
+# S3 API     -> http://localhost:9000
+# Health     -> http://localhost:9000/health/ready
+# Metrics    -> http://localhost:9000/metrics</pre></div>
+
+        <h3>Demo scripts</h3>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr><th>Platform</th><th>Command</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Linux / macOS</td><td><code>./scripts/demo.sh</code></td></tr>
+              <tr><td>Windows</td><td><code>.\scripts\demo.ps1</code></td></tr>
+              <tr><td>3-node cluster</td><td><code>./scripts/demo-cluster.sh</code> or <code>.\scripts\demo-cluster.ps1</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- verify -->
+      <section class="doc-section" id="verify">
+        <h2>Verify setup</h2>
+        <p>Confirm the server is ready, then run a full AWS CLI workflow.</p>
+
+        <h3>Health check</h3>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>curl -sf http://localhost:9000/health/ready
+curl -sf http://localhost:9000/health/live</pre></div>
+
+        <h3>AWS CLI workflow</h3>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>export AWS_ACCESS_KEY_ID=OBXTESTKEY00000001
+export AWS_SECRET_ACCESS_KEY=testsecretkeythatislongenoughforhmacsha256test
+export AWS_DEFAULT_REGION=us-east-1
+
+aws --endpoint-url http://localhost:9000 s3 mb s3://photos
+echo "ObjeX works." > hello.txt
+aws --endpoint-url http://localhost:9000 s3 cp hello.txt s3://photos/
+aws --endpoint-url http://localhost:9000 s3 ls s3://photos/
+aws --endpoint-url http://localhost:9000 s3 cp s3://photos/hello.txt downloaded.txt
+cat downloaded.txt</pre></div>
+      </section>
+
+      <!-- auth -->
+      <section class="doc-section" id="auth">
+        <h2>Authentication</h2>
+        <p>
+          All S3 routes require <strong>AWS Signature Version 4</strong> (SigV4). The server validates
+          the Authorization header (or presigned query parameters) against credentials stored in SQLite.
+          Default region for signing is <code>us-east-1</code>.
+        </p>
+
+        <h3>Public routes (no SigV4)</h3>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr><th>Method</th><th>Path</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>GET</code></td><td><code>/health</code>, <code>/health/live</code>, <code>/health/ready</code></td><td>Liveness and readiness</td></tr>
+              <tr><td><code>GET</code></td><td><code>/metrics</code></td><td>Prometheus scrape target</td></tr>
+              <tr><td><code>GET</code></td><td><code>/cluster</code></td><td>Cluster membership and peer status</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Internal cluster token</h3>
+        <p>
+          When <code>OBJEX_CLUSTER_INTERNAL_TOKEN</code> is set, inter-node replication requests must
+          include <code>X-ObjeX-Internal-Token</code>. This separates client-facing S3 traffic from
+          internal replicate operations and prevents replication loops.
+        </p>
+        <div class="doc-warning doc-note">
+          Change default development credentials before any real deployment. SigV4 protects the API,
+          but default keys are public in the repository.
+        </div>
+      </section>
+
+      <!-- api-buckets -->
+      <section class="doc-section" id="api-buckets">
+        <h2>API: Buckets</h2>
+        <p>Bucket operations map to standard S3 HTTP routes at the service root or bucket path.</p>
+
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr><th>Method</th><th>Path</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>GET</code></td><td><code>/</code></td><td>List buckets</td></tr>
+              <tr><td><code>PUT</code></td><td><code>/{bucket}</code></td><td>Create bucket</td></tr>
+              <tr><td><code>DELETE</code></td><td><code>/{bucket}</code></td><td>Delete bucket</td></tr>
+              <tr><td><code>HEAD</code></td><td><code>/{bucket}</code></td><td>Head bucket</td></tr>
+              <tr><td><code>GET</code></td><td><code>/{bucket}?list-type=2</code></td><td>List objects (v2)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method get">GET</span><span>/</span></div>
+          <div class="doc-api-body">
+            <p>List all buckets for the authenticated account. Response is S3 ListAllMyBuckets XML.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3 ls</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method put">PUT</span><span>/{bucket}</span></div>
+          <div class="doc-api-body">
+            <p>Create an empty bucket. Returns 200 on success.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3 mb s3://photos
+curl -X PUT http://localhost:9000/photos \
+  -H "Authorization: AWS4-HMAC-SHA256 ..." \
+  -H "x-amz-date: ..."</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method delete">DELETE</span><span>/{bucket}</span></div>
+          <div class="doc-api-body">
+            <p>Delete an empty bucket. Bucket must contain no objects.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3 rb s3://photos</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method head">HEAD</span><span>/{bucket}</span></div>
+          <div class="doc-api-body">
+            <p>Check bucket existence. Returns 200 if the bucket exists, 404 otherwise.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3api head-bucket --bucket photos</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method get">GET</span><span>/{bucket}?list-type=2</span></div>
+          <div class="doc-api-body">
+            <p>List objects in a bucket (ListObjectsV2). Supports <code>prefix</code>, <code>max-keys</code>, and <code>continuation-token</code>.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3 ls s3://photos/
+aws --endpoint-url http://localhost:9000 s3api list-objects-v2 --bucket photos --prefix images/</pre></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- api-objects -->
+      <section class="doc-section" id="api-objects">
+        <h2>API: Objects</h2>
+
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr><th>Method</th><th>Path</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>PUT</code></td><td><code>/{bucket}/{key}</code></td><td>Put object</td></tr>
+              <tr><td><code>GET</code></td><td><code>/{bucket}/{key}</code></td><td>Get object (supports Range)</td></tr>
+              <tr><td><code>HEAD</code></td><td><code>/{bucket}/{key}</code></td><td>Head object</td></tr>
+              <tr><td><code>DELETE</code></td><td><code>/{bucket}/{key}</code></td><td>Delete object</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method put">PUT</span><span>/{bucket}/{key}</span></div>
+          <div class="doc-api-body">
+            <p>Upload object bytes. Body is the raw file content. Response includes ETag header.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>echo "hello world" > hello.txt
+aws --endpoint-url http://localhost:9000 s3 cp hello.txt s3://photos/hello.txt</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method get">GET</span><span>/{bucket}/{key}</span></div>
+          <div class="doc-api-body">
+            <p>Download object bytes. Supports <code>Range</code> header for partial reads.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3 cp s3://photos/hello.txt out.txt
+aws --endpoint-url http://localhost:9000 s3api get-object \
+  --bucket photos --key hello.txt out.bin</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method head">HEAD</span><span>/{bucket}/{key}</span></div>
+          <div class="doc-api-body">
+            <p>Return object metadata without body. Includes Content-Length and ETag.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3api head-object \
+  --bucket photos --key hello.txt</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method delete">DELETE</span><span>/{bucket}/{key}</span></div>
+          <div class="doc-api-body">
+            <p>Delete a single object. In cluster mode, deletion is coordinated with quorum and versioned tombstones.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3 rm s3://photos/hello.txt</pre></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- api-multipart -->
+      <section class="doc-section" id="api-multipart">
+        <h2>API: Multipart uploads</h2>
+        <p>Large files can be uploaded in parts. Query parameters select multipart operations on the same object path.</p>
+
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr><th>Query</th><th>Method</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>?uploads</code></td><td><code>POST</code></td><td>Initiate multipart upload</td></tr>
+              <tr><td><code>?uploadId=…&amp;partNumber=n</code></td><td><code>PUT</code></td><td>Upload part</td></tr>
+              <tr><td><code>?uploadId=…</code></td><td><code>POST</code></td><td>Complete upload</td></tr>
+              <tr><td><code>?uploadId=…</code></td><td><code>DELETE</code></td><td>Abort upload</td></tr>
+              <tr><td><code>?uploads</code></td><td><code>GET</code></td><td>List in-progress uploads</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Full multipart workflow</h3>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>export AWS_ACCESS_KEY_ID=OBXTESTKEY00000001
+export AWS_SECRET_ACCESS_KEY=testsecretkeythatislongenoughforhmacsha256test
+export AWS_DEFAULT_REGION=us-east-1
+ENDPOINT=http://localhost:9000
+
+# Create bucket and large test file
+aws --endpoint-url $ENDPOINT s3 mb s3://uploads
+dd if=/dev/urandom of=large.bin bs=1M count=10
+
+# Initiate
+UPLOAD_ID=$(aws --endpoint-url $ENDPOINT s3api create-multipart-upload \
+  --bucket uploads --key large.bin --query UploadId --output text)
+
+# Upload part 1 (first 5 MB)
+dd if=large.bin of=part1.bin bs=1M count=5
+ETAG1=$(aws --endpoint-url $ENDPOINT s3api upload-part \
+  --bucket uploads --key large.bin --part-number 1 \
+  --body part1.bin --upload-id "$UPLOAD_ID" --query ETag --output text)
+
+# Upload part 2 (remaining bytes)
+dd if=large.bin of=part2.bin bs=1M skip=5
+ETAG2=$(aws --endpoint-url $ENDPOINT s3api upload-part \
+  --bucket uploads --key large.bin --part-number 2 \
+  --body part2.bin --upload-id "$UPLOAD_ID" --query ETag --output text)
+
+# Complete
+aws --endpoint-url $ENDPOINT s3api complete-multipart-upload \
+  --bucket uploads --key large.bin --upload-id "$UPLOAD_ID" \
+  --multipart-upload "Parts=[{ETag=$ETAG1,PartNumber=1},{ETag=$ETAG2,PartNumber=2}]"
+
+# Verify
+aws --endpoint-url $ENDPOINT s3api head-object --bucket uploads --key large.bin
+
+# Abort example (if needed before complete)
+# aws --endpoint-url $ENDPOINT s3api abort-multipart-upload \
+#   --bucket uploads --key large.bin --upload-id "$UPLOAD_ID"</pre></div>
+      </section>
+
+      <!-- api-batch -->
+      <section class="doc-section" id="api-batch">
+        <h2>API: Batch delete</h2>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method post">POST</span><span>/{bucket}?delete</span></div>
+          <div class="doc-api-body">
+            <p>Delete multiple keys in one request. Send XML body with <code>Content-Type: application/xml</code>.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>cat &gt; delete.xml &lt;&lt;'EOF'
+&lt;Delete&gt;
+  &lt;Object&gt;&lt;Key&gt;file-a.txt&lt;/Key&gt;&lt;/Object&gt;
+  &lt;Object&gt;&lt;Key&gt;file-b.txt&lt;/Key&gt;&lt;/Object&gt;
+  &lt;Object&gt;&lt;Key&gt;images/old.png&lt;/Key&gt;&lt;/Object&gt;
+&lt;/Delete&gt;
+EOF
+
+aws --endpoint-url http://localhost:9000 s3api delete-objects \
+  --bucket photos \
+  --delete file://delete.xml</pre></div>
+            <p>Response is S3 <code>DeleteResult</code> XML listing deleted keys and any per-key errors.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- api-copy -->
+      <section class="doc-section" id="api-copy">
+        <h2>API: Copy object</h2>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method put">PUT</span><span>/{bucket}/{key}</span></div>
+          <div class="doc-api-body">
+            <p>
+              Copy an existing object to a new key using the <code>x-amz-copy-source</code> header.
+              Value format: <code>/{source-bucket}/{source-key}</code> (URL-encoded if needed).
+            </p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>aws --endpoint-url http://localhost:9000 s3 cp s3://photos/hello.txt s3://photos/hello-copy.txt
+
+aws --endpoint-url http://localhost:9000 s3api copy-object \
+  --bucket photos \
+  --key backup/hello.txt \
+  --copy-source photos/hello.txt</pre></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- api-utils -->
+      <section class="doc-section" id="api-utils">
+        <h2>API: Utilities</h2>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method get">GET</span><span>/api/presign/{bucket}/{key}</span></div>
+          <div class="doc-api-body">
+            <p>
+              SigV4-protected helper that returns a JSON presigned URL. Query params:
+              <code>expires</code> (seconds), optional <code>method</code> (<code>GET</code> or <code>PUT</code>).
+            </p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre># Presigned GET (requires SigV4 on this helper endpoint)
+curl -s "http://localhost:9000/api/presign/photos/hello.txt?expires=3600" \
+  -H "Authorization: ..." | jq -r .url
+
+# Presigned PUT
+curl -s "http://localhost:9000/api/presign/photos/new.txt?expires=3600&method=PUT" \
+  -H "Authorization: ..." | jq -r .url</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method get">GET</span><span>/health/live</span></div>
+          <div class="doc-api-body">
+            <p>Liveness probe. No authentication. Returns JSON when the process is running.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>curl -s http://localhost:9000/health/live</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method get">GET</span><span>/health/ready</span></div>
+          <div class="doc-api-body">
+            <p>Readiness probe. Checks metadata store and blob directory are writable.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>curl -s http://localhost:9000/health/ready</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method get">GET</span><span>/metrics</span></div>
+          <div class="doc-api-body">
+            <p>Prometheus text exposition. Request, storage, replication, and cluster-forward counters.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>curl -s http://localhost:9000/metrics | head -20</pre></div>
+          </div>
+        </div>
+
+        <div class="doc-api-block">
+          <div class="doc-api-head"><span class="doc-method get">GET</span><span>/cluster</span></div>
+          <div class="doc-api-body">
+            <p>Cluster membership, placement config, and peer reachability. No authentication.</p>
+            <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>curl -s http://localhost:9001/cluster | jq .</pre></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ex-cli -->
+      <section class="doc-section" id="ex-cli">
+        <h2>Code examples: AWS CLI</h2>
+        <p>Comprehensive CLI reference. Set environment once, then run any command with <code>--endpoint-url</code>.</p>
+
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>export AWS_ACCESS_KEY_ID=OBXTESTKEY00000001
+export AWS_SECRET_ACCESS_KEY=testsecretkeythatislongenoughforhmacsha256test
+export AWS_DEFAULT_REGION=us-east-1
+ENDPOINT=http://localhost:9000</pre></div>
+
+        <h3>Bucket commands</h3>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre># 1. List buckets
+aws --endpoint-url $ENDPOINT s3 ls
+
+# 2. Create bucket
+aws --endpoint-url $ENDPOINT s3 mb s3://demo
+
+# 3. Delete empty bucket
+aws --endpoint-url $ENDPOINT s3 rb s3://demo
+
+# 4. Head bucket
+aws --endpoint-url $ENDPOINT s3api head-bucket --bucket demo
+
+# 5. List objects
+aws --endpoint-url $ENDPOINT s3 ls s3://demo/
+aws --endpoint-url $ENDPOINT s3api list-objects-v2 --bucket demo --prefix logs/</pre></div>
+
+        <h3>Object commands</h3>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre># 6. Upload file
+echo "test content" > sample.txt
+aws --endpoint-url $ENDPOINT s3 cp sample.txt s3://demo/sample.txt
+
+# 7. Download file
+aws --endpoint-url $ENDPOINT s3 cp s3://demo/sample.txt downloaded.txt
+
+# 8. Head object
+aws --endpoint-url $ENDPOINT s3api head-object --bucket demo --key sample.txt
+
+# 9. Delete object
+aws --endpoint-url $ENDPOINT s3 rm s3://demo/sample.txt
+
+# 10. Sync directory
+aws --endpoint-url $ENDPOINT s3 sync ./local-dir s3://demo/backup/
+
+# 11. Copy within bucket
+aws --endpoint-url $ENDPOINT s3 cp s3://demo/a.txt s3://demo/b.txt
+
+# 12. Presigned URL (client-side, no server helper)
+aws --endpoint-url $ENDPOINT s3 presign s3://demo/sample.txt --expires-in 3600</pre></div>
+      </section>
+
+      <!-- ex-python -->
+      <section class="doc-section" id="ex-python">
+        <h2>Code examples: Python (boto3)</h2>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>#!/usr/bin/env python3
+"""ObjeX boto3 example."""
+import boto3
+from botocore.client import Config
+
+ENDPOINT = "http://localhost:9000"
+ACCESS_KEY = "OBXTESTKEY00000001"
+SECRET_KEY = "testsecretkeythatislongenoughforhmacsha256test"
+BUCKET = "python-demo"
+
+s3 = boto3.client(
+    "s3",
+    endpoint_url=ENDPOINT,
+    aws_access_key_id=ACCESS_KEY,
+    aws_secret_access_key=SECRET_KEY,
+    region_name="us-east-1",
+    config=Config(signature_version="s3v4"),
+)
+
+# Create bucket (ignore if exists)
+try:
+    s3.create_bucket(Bucket=BUCKET)
+except s3.exceptions.BucketAlreadyOwnedByYou:
+    pass
+
+# Upload
+body = b"Hello from boto3 and ObjeX."
+s3.put_object(Bucket=BUCKET, Key="greeting.txt", Body=body)
+
+# Download
+resp = s3.get_object(Bucket=BUCKET, Key="greeting.txt")
+data = resp["Body"].read()
+print(data.decode())
+
+# List
+for obj in s3.list_objects_v2(Bucket=BUCKET).get("Contents", []):
+    print(obj["Key"], obj["Size"])
+
+# Delete
+s3.delete_object(Bucket=BUCKET, Key="greeting.txt")
+s3.delete_bucket(Bucket=BUCKET)</pre></div>
+      </section>
+
+      <!-- ex-node -->
+      <section class="doc-section" id="ex-node">
+        <h2>Code examples: Node.js (@aws-sdk/client-s3)</h2>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>// npm install @aws-sdk/client-s3
+import { S3Client, CreateBucketCommand, PutObjectCommand,
+         GetObjectCommand, ListObjectsV2Command, DeleteObjectCommand,
+         DeleteBucketCommand } from "@aws-sdk/client-s3";
+
+const ENDPOINT = "http://localhost:9000";
+const ACCESS_KEY = "OBXTESTKEY00000001";
+const SECRET_KEY = "testsecretkeythatislongenoughforhmacsha256test";
+const BUCKET = "node-demo";
+
+const client = new S3Client({
+  region: "us-east-1",
+  endpoint: ENDPOINT,
+  forcePathStyle: true,
+  credentials: { accessKeyId: ACCESS_KEY, secretAccessKey: SECRET_KEY },
+});
+
+async function main() {
+  await client.send(new CreateBucketCommand({ Bucket: BUCKET }));
+
+  await client.send(new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: "greeting.txt",
+    Body: "Hello from Node.js and ObjeX.",
+  }));
+
+  const get = await client.send(new GetObjectCommand({
+    Bucket: BUCKET,
+    Key: "greeting.txt",
+  }));
+  console.log(await get.Body.transformToString());
+
+  const list = await client.send(new ListObjectsV2Command({ Bucket: BUCKET }));
+  console.log(list.Contents?.map((o) => o.Key));
+
+  await client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: "greeting.txt" }));
+  await client.send(new DeleteBucketCommand({ Bucket: BUCKET }));
+}
+
+main().catch(console.error);</pre></div>
+        <div class="doc-note">
+          <code>forcePathStyle: true</code> is required. ObjeX uses path-style URLs
+          (<code>http://localhost:9000/bucket/key</code>), not virtual-hosted style.
+        </div>
+      </section>
+
+      <!-- ex-go -->
+      <section class="doc-section" id="ex-go">
+        <h2>Code examples: Go (aws-sdk-go-v2)</h2>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+)
+
+func main() {
+	const (
+		endpoint = "http://localhost:9000"
+		access   = "OBXTESTKEY00000001"
+		secret   = "testsecretkeythatislongenoughforhmacsha256test"
+		bucket   = "go-demo"
+		key      = "greeting.txt"
+	)
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(access, secret, "")),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(endpoint)
+		o.UsePathStyle = true
+	})
+
+	ctx := context.TODO()
+
+	_, err = client.CreateBucket(ctx, &s3.CreateBucketInput{Bucket: aws.String(bucket)})
+	if err != nil && !strings.Contains(err.Error(), "BucketAlreadyOwnedByYou") {
+		log.Fatal(err)
+	}
+
+	_, err = client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+		Body:   strings.NewReader("Hello from Go and ObjeX."),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	out, err := client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Body.Close()
+	buf := make([]byte, 256)
+	n, _ := out.Body.Read(buf)
+	fmt.Println(string(buf[:n]))
+}</pre></div>
+        <p>Install: <code>go get github.com/aws/aws-sdk-go-v2/config github.com/aws/aws-sdk-go-v2/service/s3</code></p>
+      </section>
+
+      <!-- ex-ci -->
+      <section class="doc-section" id="ex-ci">
+        <h2>Code examples: CI (GitHub Actions)</h2>
+        <p>Run ObjeX in Docker during integration tests so your suite has a real S3 endpoint.</p>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>name: Integration tests with ObjeX
+
+on: [push, pull_request]
+
+jobs:
+  s3-integration:
+    runs-on: ubuntu-latest
+    services:
+      objex:
+        image: ghcr.io/vishalpainjane/objex:latest
+        ports:
+          - 9000:9000
+        env:
+          OBJEX_ACCESS_KEY_ID: OBXTESTKEY00000001
+          OBJEX_SECRET_ACCESS_KEY: testsecretkeythatislongenoughforhmacsha256test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for ObjeX
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/health/ready && exit 0
+            sleep 2
+          done
+          exit 1
+
+      - name: Smoke test with AWS CLI
+        env:
+          AWS_ACCESS_KEY_ID: OBXTESTKEY00000001
+          AWS_SECRET_ACCESS_KEY: testsecretkeythatislongenoughforhmacsha256test
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          aws --endpoint-url http://localhost:9000 s3 mb s3://ci-test
+          echo "ci ok" > ci.txt
+          aws --endpoint-url http://localhost:9000 s3 cp ci.txt s3://ci-test/
+          aws --endpoint-url http://localhost:9000 s3 ls s3://ci-test/
+
+      - name: Run application tests
+        env:
+          S3_ENDPOINT: http://localhost:9000
+          AWS_ACCESS_KEY_ID: OBXTESTKEY00000001
+          AWS_SECRET_ACCESS_KEY: testsecretkeythatislongenoughforhmacsha256test
+        run: npm test</pre></div>
+        <div class="doc-note">
+          For local CI without a published image, replace the service with
+          <code>docker compose up -d --build</code> in a setup step.
+        </div>
+      </section>
+
+      <!-- cluster-install -->
+      <section class="doc-section" id="cluster-install">
+        <h2>Cluster: Installation</h2>
+        <p>Three-node profile using <code>docker-compose.cluster.yml</code>. Each node exposes a distinct port.</p>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>git clone https://github.com/VishalPainjane/ObjeX.git
+cd ObjeX
+docker compose -f docker-compose.cluster.yml up -d --build
+
+# Node endpoints
+#   http://localhost:9001  (node-1)
+#   http://localhost:9002  (node-2)
+#   http://localhost:9003  (node-3)
+
+curl -s http://localhost:9001/cluster | jq .
+
+# Stop cluster
+docker compose -f docker-compose.cluster.yml down</pre></div>
+      </section>
+
+      <!-- cluster-config -->
+      <section class="doc-section" id="cluster-config">
+        <h2>Cluster: Configuration file</h2>
+        <p>
+          Static membership is loaded from <code>OBJEX_CLUSTER_CONFIG</code>. Every node runs the same
+          JSON so placement is deterministic. Docker Compose uses internal hostnames; local testing
+          uses <code>localhost</code> ports.
+        </p>
+        <p class="doc-pre-label">configs/cluster-3-docker.json (Docker internal network)</p>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>{
+  "cluster": {
+    "nodes": [
+      { "id": "node-1", "address": "objex-node-1:9001" },
+      { "id": "node-2", "address": "objex-node-2:9002" },
+      { "id": "node-3", "address": "objex-node-3:9003" }
+    ]
+  }
+}</pre></div>
+      </section>
+
+      <!-- cluster-quorum -->
+      <section class="doc-section" id="cluster-quorum">
+        <h2>Cluster: Quorum (N, W, R)</h2>
+        <p>
+          Replication uses configurable quorum parameters. On the 3-node Docker profile, defaults are
+          <code>N=3</code>, <code>W=2</code>, <code>R=2</code>.
+        </p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr><th>Symbol</th><th>Env variable</th><th>Meaning</th><th>3-node default</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>N</code></td><td><code>OBJEX_REPLICATION_FACTOR</code></td><td>Nodes in the replica set (primary + replicas)</td><td>3</td></tr>
+              <tr><td><code>W</code></td><td><code>OBJEX_WRITE_QUORUM</code></td><td>Write acknowledgements required before success</td><td>2</td></tr>
+              <tr><td><code>R</code></td><td><code>OBJEX_READ_QUORUM</code></td><td>Replicas consulted on read</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Rendezvous hashing selects a primary and <code>N - 1</code> replicas per <code>(bucket, key)</code>.
+          Non-primary nodes forward object requests to the primary. The coordinator fans out writes,
+          records hints for lagging peers, and performs read repair on GET when versions diverge.
+        </p>
+      </section>
+
+      <!-- cluster-demo -->
+      <section class="doc-section" id="cluster-demo">
+        <h2>Cluster: Upload via node 1, read via node 2</h2>
+        <p>Any node accepts client traffic. Upload through one port, then read from another to verify replication.</p>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>export AWS_ACCESS_KEY_ID=OBXTESTKEY00000001
+export AWS_SECRET_ACCESS_KEY=testsecretkeythatislongenoughforhmacsha256test
+export AWS_DEFAULT_REGION=us-east-1
+
+NODE1=http://localhost:9001
+NODE2=http://localhost:9002
+
+# Upload via node 1
+aws --endpoint-url $NODE1 s3 mb s3://cluster-demo
+echo "replicated object" > cluster.txt
+aws --endpoint-url $NODE1 s3 cp cluster.txt s3://cluster-demo/cluster.txt
+
+# Read via node 2 (different node, same data)
+aws --endpoint-url $NODE2 s3 cp s3://cluster-demo/cluster.txt read-via-node2.txt
+cat read-via-node2.txt
+
+# Inspect placement and peer health
+curl -s $NODE1/cluster | jq .
+curl -s $NODE2/cluster | jq .
+
+# Cleanup
+aws --endpoint-url $NODE1 s3 rm s3://cluster-demo/cluster.txt
+aws --endpoint-url $NODE1 s3 rb s3://cluster-demo</pre></div>
+      </section>
+
+      <!-- config-env -->
+      <section class="doc-section" id="config-env">
+        <h2>Configuration: Environment variables</h2>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>OBJEX_HTTP_ADDRESS</code></td><td><code>:9000</code></td><td>HTTP listen address</td></tr>
+              <tr><td><code>OBJEX_DATA_DIR</code></td><td><code>./data</code></td><td>SQLite database and blob root</td></tr>
+              <tr><td><code>OBJEX_PUBLIC_URL</code></td><td>derived from request</td><td>Base URL for presigned links</td></tr>
+              <tr><td><code>OBJEX_ACCESS_KEY_ID</code></td><td>(none)</td><td>S3 access key (required for SigV4)</td></tr>
+              <tr><td><code>OBJEX_SECRET_ACCESS_KEY</code></td><td>(none)</td><td>S3 secret key</td></tr>
+              <tr><td><code>OBJEX_MAX_UPLOAD_BYTES</code></td><td><code>0</code> (unlimited)</td><td>Per-request upload cap</td></tr>
+              <tr><td><code>OBJEX_CLUSTER_CONFIG</code></td><td>(none)</td><td>Path to cluster membership JSON</td></tr>
+              <tr><td><code>OBJEX_NODE_ID</code></td><td><code>node-1</code></td><td>This node's identity in the cluster</td></tr>
+              <tr><td><code>OBJEX_REPLICATION_FACTOR</code></td><td><code>1</code></td><td><code>N</code>, nodes in the replica set</td></tr>
+              <tr><td><code>OBJEX_WRITE_QUORUM</code></td><td><code>1</code></td><td><code>W</code>, write acknowledgements required</td></tr>
+              <tr><td><code>OBJEX_READ_QUORUM</code></td><td><code>1</code></td><td><code>R</code>, replicas consulted on read</td></tr>
+              <tr><td><code>OBJEX_CLUSTER_INTERNAL_TOKEN</code></td><td>(none)</td><td>Shared secret for inter-node requests</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- config-cluster-json -->
+      <section class="doc-section" id="config-cluster-json">
+        <h2>Configuration: Cluster JSON sample</h2>
+        <p>Local development outside Docker uses <code>configs/cluster-3.json</code> with localhost ports.</p>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>{
+  "cluster": {
+    "nodes": [
+      { "id": "node-1", "address": "localhost:9001" },
+      { "id": "node-2", "address": "localhost:9002" },
+      { "id": "node-3", "address": "localhost:9003" }
+    ]
+  }
+}</pre></div>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>export OBJEX_CLUSTER_CONFIG=./configs/cluster-3.json
+export OBJEX_NODE_ID=node-1
+export OBJEX_REPLICATION_FACTOR=3
+export OBJEX_WRITE_QUORUM=2
+export OBJEX_READ_QUORUM=2
+go run ./cmd/objex</pre></div>
+      </section>
+
+      <!-- ops-health -->
+      <section class="doc-section" id="ops-health">
+        <h2>Operations: Health checks</h2>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre># Liveness: process is running
+curl -s http://localhost:9000/health/live
+
+# Readiness: metadata + blob store writable
+curl -s http://localhost:9000/health/ready
+
+# Generic health (also supported)
+curl -s http://localhost:9000/health</pre></div>
+        <p>Use <code>/health/ready</code> for Kubernetes readiness probes and Docker healthchecks.</p>
+      </section>
+
+      <!-- ops-metrics -->
+      <section class="doc-section" id="ops-metrics">
+        <h2>Operations: Metrics</h2>
+        <p>Prometheus text format at <code>/metrics</code>. No authentication required.</p>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre># Scrape all metrics
+curl -s http://localhost:9000/metrics
+
+# Filter request counters
+curl -s http://localhost:9000/metrics | grep objex_http
+
+# Cluster node metrics
+curl -s http://localhost:9001/metrics | grep objex_cluster</pre></div>
+        <p>Metrics cover HTTP requests, storage operations, replication, and cluster forwarding.</p>
+      </section>
+
+      <!-- ops-jobs -->
+      <section class="doc-section" id="ops-jobs">
+        <h2>Operations: Background jobs</h2>
+        <p>The main binary starts maintenance workers automatically from <code>cmd/objex</code>.</p>
+        <ul>
+          <li><strong>Orphan blob cleanup</strong>: metadata says deleted, but the file still exists on disk</li>
+          <li><strong>Multipart cleanup</strong>: abandoned upload sessions past expiry are removed</li>
+          <li><strong>Integrity verification</strong>: re-hash stored bytes and compare to recorded ETag</li>
+        </ul>
+        <div class="doc-note">
+          Jobs run in the background without separate CLI flags. Tune intervals via environment if
+          documented in <code>internal/jobs</code> source.
+        </div>
+      </section>
+
+      <!-- dev-source -->
+      <section class="doc-section" id="dev-source">
+        <h2>Development: Run from source</h2>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>git clone https://github.com/VishalPainjane/ObjeX.git
+cd ObjeX
+
+export OBJEX_ACCESS_KEY_ID=OBXTESTKEY00000001
+export OBJEX_SECRET_ACCESS_KEY=testsecretkeythatislongenoughforhmacsha256test
+export OBJEX_DATA_DIR=./data
+
+go run ./cmd/objex</pre></div>
+      </section>
+
+      <!-- dev-test -->
+      <section class="doc-section" id="dev-test">
+        <h2>Development: Testing</h2>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre># Unit and integration tests
+go test ./...
+
+# Race detector (CI runs this on every push)
+go test -race ./...
+
+# Static analysis and build
+go vet ./...
+go build ./...</pre></div>
+        <p>Integration tests spin up <code>httptest</code> servers with in-memory SQLite and temp blob directories. Cluster tests use multi-node helpers in <code>internal/api/cluster_env_test.go</code>.</p>
+      </section>
+
+      <!-- dev-layout -->
+      <section class="doc-section" id="dev-layout">
+        <h2>Development: Project layout</h2>
+        <div class="code-wrap"><button type="button" class="copy-btn">Copy</button><pre>cmd/objex/              Main server binary
+internal/
+  api/                  S3 HTTP handler and integration tests
+  auth/                 SigV4, presign, internal cluster token
+  cluster/              Placement, proxy forwarding, peer health
+  config/               Environment and cluster JSON loading
+  jobs/                 Background maintenance and integrity checks
+  metadata/sqlite/      Buckets, objects, multipart, hints, credentials
+  object/               Domain service (put/get/delete, multipart, copy)
+  quorum/               N/R/W quorum math
+  replication/          Coordinator, replicator, hints, healing
+  s3/                   XML responses and batch-delete parsing
+  storage/filesystem/   Content-addressable blob store
+  validation/           Bucket and key validators
+configs/                Sample cluster membership files
+docs/
+  architecture/         Design deep-dives
+  showcase/             Landing page and this documentation
+docker-compose.yml      Single-node profile
+docker-compose.cluster.yml   Three-node profile</pre></div>
+      </section>
+
+      <!-- troubleshoot -->
+      <section class="doc-section" id="troubleshoot">
+        <h2>Troubleshooting</h2>
+        <p class="doc-section-intro">Common errors and how to resolve them during local development or cluster testing.</p>
+
+        <div class="doc-issues">
+          <article class="doc-issue">
+            <h3>403 Forbidden / SignatureDoesNotMatch</h3>
+            <p>Verify access key, secret key, and region (<code>us-east-1</code>). Ensure the clock is accurate. For presigned URLs, check expiry and that the URL was not modified.</p>
+          </article>
+          <article class="doc-issue">
+            <h3>Connection refused on port 9000</h3>
+            <p>Confirm ObjeX is running: <code>docker compose ps</code> or check the <code>go run</code> process. Cluster nodes use 9001, 9002, 9003.</p>
+          </article>
+          <article class="doc-issue">
+            <h3>404 NoSuchBucket / NoSuchKey</h3>
+            <p>Create the bucket first with <code>s3 mb</code>. Keys are case-sensitive. Path-style URLs require <code>forcePathStyle</code> in SDK clients.</p>
+          </article>
+          <article class="doc-issue">
+            <h3>BucketAlreadyExists</h3>
+            <p>Bucket names are global within the ObjeX instance. Pick a different name or delete the existing bucket if empty.</p>
+          </article>
+          <article class="doc-issue">
+            <h3>Cluster read returns stale or missing data</h3>
+            <p>Check <code>/cluster</code> for peer reachability. Writes need <code>W</code> acknowledgements. A lagging replica may catch up via hints or read repair on GET.</p>
+          </article>
+          <article class="doc-issue">
+            <h3>Upload fails with size limit</h3>
+            <p>If <code>OBJEX_MAX_UPLOAD_BYTES</code> is set, requests larger than the cap are rejected. Default is unlimited (<code>0</code>).</p>
+          </article>
+        </div>
+
+        <div class="doc-warning doc-note">
+          For deeper design context, see architecture docs on GitHub:
+          <a href="https://github.com/VishalPainjane/ObjeX/tree/main/docs/architecture">docs/architecture</a>.
+        </div>
+      </section>
+
+      <footer class="doc-footer">
+        <div class="doc-footer-inner">
+          <div class="doc-footer-brand">
+            <span class="doc-footer-logo">ObjeX</span>
+            <span class="doc-footer-tag">Technical documentation</span>
+          </div>
+          <nav class="doc-footer-links" aria-label="Footer">
+            <a href="index.html">Home</a>
+            <a href="documentation.html">Documentation</a>
+            <a href="https://github.com/VishalPainjane/ObjeX" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/VishalPainjane/ObjeX/tree/main/docs/architecture" target="_blank" rel="noopener">Architecture</a>
+          </nav>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <button type="button" class="doc-back-top" id="doc-back-top" aria-label="Back to top">Top</button>
+
+  <script src="js/documentation.js"></script>
+</body>
+</html>
