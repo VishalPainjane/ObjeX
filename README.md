@@ -79,22 +79,16 @@ Any node accepts the client request. Non-primary nodes forward object operations
 
 ```mermaid
 flowchart TB
-  C[S3 client]
-  N[Any ObjeX node]
-  P[Primary node]
-  R1[Replica 1]
-  R2[Replica 2]
-  M[(SQLite + blobs)]
-
-  C --> N
-  N -->|not primary| P
-  N -->|is primary| P
-  P --> M
-  P -->|replicate-put / delete| R1
-  P -->|replicate-put / delete| R2
-  P -.->|hinted handoff| R1
-  P -.->|read repair on GET| R2
+  C[S3 client] --> N[Any ObjeX node]
+  N --> P[Primary node]
+  P --> M[(SQLite and blobs)]
+  P --> R1[Replica 1]
+  P --> R2[Replica 2]
 ```
+
+- **Forwarding:** non-primary nodes proxy object requests to the placement primary.
+- **Replication:** the primary fans out PUT and DELETE to replica peers for quorum.
+- **Repair:** hinted handoff for lagging replicas; read repair on GET when copies diverge.
 
 ### Package map
 
